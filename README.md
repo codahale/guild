@@ -60,5 +60,4 @@ your actor classes with them.)
 License
 -------
 
-Copyright (c) 2010 Coda Hale
-Published under The MIT License, see LICENSE
+Copyright (c) 2010 Coda Hale; Published under The MIT License, see LICENSE.
