@@ -1,6 +1,6 @@
 package com.codahale.guild
 
-import org.jetlang.fibers.{Fiber, PoolFiberFactory}
+import org.jetlang.fibers.PoolFiberFactory
 import org.jetlang.core.BatchExecutorImpl
 import java.util.concurrent.{ExecutorService, TimeUnit, Executors}
 
