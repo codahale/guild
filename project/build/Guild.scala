@@ -1,4 +1,4 @@
-class Guild(info: sbt.ProjectInfo) extends sbt.DefaultProject(info) {
+class Guild(info: sbt.ProjectInfo) extends sbt.DefaultProject(info) with posterous.Publish {
   override def compileOptions = super.compileOptions ++ List(Deprecation, Unchecked)
   
   /**
