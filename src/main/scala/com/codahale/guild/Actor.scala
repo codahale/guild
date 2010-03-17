@@ -24,6 +24,12 @@ private case class ReplyCallback(queue: TransferQueue[Any]) extends Callback[Any
   }
 }
 
+private case class ActorInit(actor : Actor) extends Runnable {
+  def run() {
+    actor.onStart
+  }
+}
+
 /**
  * A callback wrapper which sends a message to an actor.
  */
@@ -46,7 +52,10 @@ abstract class Actor {
   /**
    * Starts the actor. Actors which are not started do not process messages.
    */
-  def start() = fiber.start()
+  def start() = {
+    fiber.start()
+    fiber.execute(ActorInit(this))
+  }
 
   /**
    * Stops the actor. Actors which have been stopped cannot be restarted.
@@ -57,6 +66,13 @@ abstract class Actor {
    * An abstract method which is called when the actor receives a message.
    */
   def onMessage(message: Any): Any
+  
+  /**
+   * An abstract method which is called when the actor first starts up
+   */
+  def onStart {
+    
+  }
 
   /**
    * Asynchronously sends a message to the actor.
