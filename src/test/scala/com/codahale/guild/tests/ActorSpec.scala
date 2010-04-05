@@ -6,7 +6,11 @@ import org.scalatest.mock.MockitoSugar
 import com.codahale.guild.Actor
 import org.mockito.Mockito.verify
 
-class TestActor(r: Runnable) extends Actor {
+class TestActor(r: Runnable, initR : Runnable) extends Actor {
+  override def onStart {
+    initR.run
+  }
+  
   def onMessage(message: Any) = {
     message match {
       case i: Int => i + 20
@@ -20,7 +24,8 @@ class ActorSpec extends Spec
         with MockitoSugar with BeforeAndAfterEach {
   
   val runnable = mock[Runnable]
-  val actor = new TestActor(runnable)
+  val initR = mock[Runnable]
+  val actor = new TestActor(runnable, initR)
 
   override protected def beforeEach() {
     actor.start()
@@ -35,7 +40,7 @@ class ActorSpec extends Spec
       actor.send('run)
 
       Thread.sleep(50)
-
+      verify(initR).run()
       verify(runnable).run()
     }
 
