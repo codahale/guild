@@ -14,7 +14,9 @@ class TestActor(r: Runnable, initR : Runnable) extends Actor {
   def onMessage(message: Any) = {
     message match {
       case i: Int => i + 20
-      case 'run => r.run()
+      case 'run => 
+        Thread.sleep(10)
+        r.run()
     }
   }
 }

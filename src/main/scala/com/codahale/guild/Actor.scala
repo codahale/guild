@@ -5,44 +5,36 @@ import org.jetlang.channels.{AsyncRequest, Request, MemoryRequestChannel}
 import java.util.concurrent.TimeUnit
 import concurrent.forkjoin.{TransferQueue, LinkedTransferQueue}
 
-/**
- * A callback wrapper which sends a message to an actor and relays its reply
- * to the scheduler.
- */
-private case class RequestCallback(actor: Actor) extends Callback[Request[Any, Any]] {
-  def onMessage(message: Request[Any, Any]) {
-    message.reply(actor.onMessage(message.getRequest))
-  }
+
+trait Callable {
+  def call(msg : Any) : Any
+}
+
+trait Sendable {
+  def send(msg : Any)
 }
 
 /**
- * A callback wrapper which relays the reply to the receiver.
+ * This is dogshit, but I'd rather not break the interface for fucking everyone.
  */
-private case class ReplyCallback(queue: TransferQueue[Any]) extends Callback[Any] {
-  def onMessage(reply: Any) {
-    queue.put(reply)
-  }
-}
-
-private case class ActorInit(actor : Actor) extends Runnable {
-  def run() {
-    actor.onStart
-  }
-}
-
-/**
- * A callback wrapper which sends a message to an actor.
- */
-private case class ActorExecution(actor: Actor, msg: Any) extends Runnable {
-  def run() {
-    actor.onMessage(msg)
+trait ActorBehavior {
+  /**
+   * An abstract method which is called when the actor receives a message.
+   */
+  def onMessage(message: Any): Any
+  
+  /**
+   * An abstract method which is called when the actor first starts up
+   */
+  def onStart() {
+    
   }
 }
 
 /**
  * An actor class which receives messages in order and safely.
  */
-abstract class Actor {
+abstract class Actor extends ActorBehavior with Callable with Sendable {
   /**
    * Override this method to use a different scheduler.
    */
@@ -92,10 +84,11 @@ abstract class Actor {
 
     val channel = new MemoryRequestChannel[Any, Any]
     channel.subscribe(fiber, RequestCallback(this))
-    AsyncRequest.withOneReply(fiber, channel, msg, ReplyCallback(queue))
+    val disposable = AsyncRequest.withOneReply(fiber, channel, msg, ReplyCallback(queue))
 
     val value = queue.poll(Long.MaxValue, TimeUnit.DAYS)
     fiber.dispose()
+    disposable.dispose()
     return value
   }
 }
