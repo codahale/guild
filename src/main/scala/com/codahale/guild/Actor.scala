@@ -53,16 +53,11 @@ abstract class Actor[M,R] extends ActorBehavior[M,R] with Callable[M, R] with Se
    * Stops the actor. Actors which have been stopped cannot be restarted.
    */
   def stop() = fiber.dispose()
-
-  /**
-   * An abstract method which is called when the actor receives a message.
-   */
-  def onMessage(message: Any): Any
   
   /**
    * An overridable method which is called when the actor first starts up.
    */
-  def onStart {
+  override def onStart {
     
   }
 

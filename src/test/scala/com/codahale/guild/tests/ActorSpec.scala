@@ -21,7 +21,7 @@ class TestActor(r: Runnable, initR : Runnable) extends Actor[Any, Any] {
   }
 }
 
-class StartingActor(r: Runnable) extends Actor {
+class StartingActor(r: Runnable) extends Actor[Any,Any] {
   override def onStart() {
     r.run()
   }
