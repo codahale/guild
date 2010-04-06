@@ -35,6 +35,8 @@ private case class PollQueue[M,R](actor : ActorBehavior[M,R], queue : TransferQu
   def run() {
     try {
       queue.poll(Long.MaxValue, TimeUnit.DAYS) match {
+        //not sure that this would ever happen but OK
+        case ErrorMessage(ex) => throw ex
         case m : AsyncMessage[_] => dispatchAsync(m.asInstanceOf[AsyncMessage[M]])
         case m : CallMessage[_,_] => dispatch(m.asInstanceOf[CallMessage[M,R]])
       }
@@ -48,7 +50,12 @@ private case class PollQueue[M,R](actor : ActorBehavior[M,R], queue : TransferQu
   }
   
   private def dispatch(message : CallMessage[M,R]) {
-    message.replyQueue.put(actor.onMessage(message.msg))
+    try {
+      message.replyQueue.put(AsyncMessage(actor.onMessage(message.msg)))
+    } catch {
+      case e : Throwable =>
+        message.replyQueue.put(ErrorMessage(e))
+    }
   }
 }
 

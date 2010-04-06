@@ -4,5 +4,6 @@ import concurrent.forkjoin.TransferQueue
 
 sealed abstract class Message[-M]
 
-case class AsyncMessage[M](val msg : M) extends Message
-case class CallMessage[M,R](val msg : M, val replyQueue : TransferQueue[R]) extends Message
+case class AsyncMessage[M](val msg : M) extends Message[M]
+case class CallMessage[M,R](val msg : M, val replyQueue : TransferQueue[Message[R]]) extends Message[M]
+case class ErrorMessage(val ex : Throwable) extends Message[Any]

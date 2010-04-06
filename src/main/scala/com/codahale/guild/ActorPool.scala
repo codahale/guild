@@ -45,8 +45,12 @@ class ActorPool[M,R, T <: ActorBehavior[M,R]](factory : ActorFactory[M,R,T]) ext
   }
   
   def call(msg : M) : R = {
-    val returnQueue = new LinkedTransferQueue[R]
-    asyncQueue.put(CallMessage(msg, returnQueue))    
-    returnQueue.poll(Long.MaxValue, TimeUnit.DAYS)
+    val returnQueue = new LinkedTransferQueue[Message[R]]
+    asyncQueue.put(CallMessage(msg, returnQueue))
+    returnQueue.poll(Long.MaxValue, TimeUnit.DAYS) match {
+      case CallMessage(msg, _) => msg.asInstanceOf[R]
+      case AsyncMessage(msg) => msg.asInstanceOf[R]
+      case ErrorMessage(ex) => throw ex
+    }
   }
 }

@@ -14,6 +14,9 @@ class TestActor(r: Runnable, initR : Runnable) extends Actor[Any, Any] {
   def onMessage(message: Any) = {
     message match {
       case i: Int => i + 20
+      case 'ex =>
+        Thread.sleep(10)
+        throw new Exception("fuck right off")
       case 'run => 
         Thread.sleep(10)
         r.run()

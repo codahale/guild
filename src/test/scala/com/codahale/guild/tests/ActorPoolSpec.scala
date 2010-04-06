@@ -50,5 +50,9 @@ class ActorPoolSpec extends Spec
       val answer = pool.call(1).asInstanceOf[Int]
       answer must be(21)
     }
+    
+    it ("should throw exceptions") {
+      evaluating { pool.call('ex) } must produce [Exception]
+    }
   }
 }
