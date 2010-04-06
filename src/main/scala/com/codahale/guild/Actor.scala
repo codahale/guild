@@ -68,7 +68,7 @@ abstract class Actor {
   def onMessage(message: Any): Any
   
   /**
-   * An abstract method which is called when the actor first starts up
+   * An overridable method which is called when the actor first starts up.
    */
   def onStart {
     

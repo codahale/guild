@@ -19,6 +19,14 @@ class TestActor(r: Runnable, initR : Runnable) extends Actor {
   }
 }
 
+class StartingActor(r: Runnable) extends Actor {
+  override def onStart() {
+    r.run()
+  }
+  
+  def onMessage(msg: Any) = null
+}
+
 class ActorSpec extends Spec
         with MustMatchers with OneInstancePerTest
         with MockitoSugar with BeforeAndAfterEach {
@@ -48,6 +56,17 @@ class ActorSpec extends Spec
       val i = actor.call(1).asInstanceOf[Int]
 
       i must be(21)
+    }
+  }
+  
+  describe("an actor being started") {
+    val actor = new StartingActor(runnable)
+    
+    it("runs its onStart method") {
+      actor.start()
+      Thread.sleep(50)
+      verify(runnable).run()
+      actor.stop()
     }
   }
 
