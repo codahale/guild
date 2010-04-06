@@ -6,7 +6,7 @@ import org.scalatest.mock.MockitoSugar
 import com.codahale.guild._
 import org.mockito.Mockito.verify
 
-class TestActorFactory extends ActorFactory[TestActor] with MockitoSugar {
+class TestActorFactory extends ActorFactory[Any, Any, TestActor] with MockitoSugar {
   var mockOnMessages = List[Runnable]()
   var mockOnInits = List[Runnable]()
   

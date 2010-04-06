@@ -6,22 +6,22 @@ import java.util.concurrent.TimeUnit
 import concurrent.forkjoin.{TransferQueue, LinkedTransferQueue}
 
 
-trait Callable {
-  def call(msg : Any) : Any
+trait Callable[-M, +R] {
+  def call(msg : M) : R
 }
 
-trait Sendable {
-  def send(msg : Any)
+trait Sendable[-M] {
+  def send(msg : M)
 }
 
 /**
  * This is dogshit, but I'd rather not break the interface for fucking everyone.
  */
-trait ActorBehavior {
+trait ActorBehavior[-M, +R] {
   /**
    * An abstract method which is called when the actor receives a message.
    */
-  def onMessage(message: Any): Any
+  def onMessage(message: M): R
   
   /**
    * An abstract method which is called when the actor first starts up
@@ -34,7 +34,7 @@ trait ActorBehavior {
 /**
  * An actor class which receives messages in order and safely.
  */
-abstract class Actor extends ActorBehavior with Callable with Sendable {
+abstract class Actor[M,R] extends ActorBehavior[M,R] with Callable[M, R] with Sendable[M] {
   /**
    * Override this method to use a different scheduler.
    */
@@ -69,20 +69,20 @@ abstract class Actor extends ActorBehavior with Callable with Sendable {
   /**
    * Asynchronously sends a message to the actor.
    */
-  def send(msg: Any) {
+  def send(msg: M) {
     fiber.execute(ActorExecution(this, msg))
   }
 
   /**
    * Synchronously sends a message to the actor and returns the response.
    */
-  def call(msg: Any): Any = {
-    val queue = new LinkedTransferQueue[Any]
+  def call(msg: M): R = {
+    val queue = new LinkedTransferQueue[R]
 
     val fiber = scheduler.createFiber()
     fiber.start()
 
-    val channel = new MemoryRequestChannel[Any, Any]
+    val channel = new MemoryRequestChannel[M, R]
     channel.subscribe(fiber, RequestCallback(this))
     val disposable = AsyncRequest.withOneReply(fiber, channel, msg, ReplyCallback(queue))
 

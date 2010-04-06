@@ -2,8 +2,7 @@ package com.codahale.guild
 
 import concurrent.forkjoin.TransferQueue
 
-trait Message
+sealed abstract class Message[-M]
 
-case class AsyncMessage(val msg :Any)
-
-case class CallMessage(val msg : Any, val replyQueue : TransferQueue[Any]) extends Message
+case class AsyncMessage[M](val msg : M) extends Message
+case class CallMessage[M,R](val msg : M, val replyQueue : TransferQueue[R]) extends Message

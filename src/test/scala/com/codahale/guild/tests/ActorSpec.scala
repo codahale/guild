@@ -6,7 +6,7 @@ import org.scalatest.mock.MockitoSugar
 import com.codahale.guild.Actor
 import org.mockito.Mockito.verify
 
-class TestActor(r: Runnable, initR : Runnable) extends Actor {
+class TestActor(r: Runnable, initR : Runnable) extends Actor[Any, Any] {
   override def onStart {
     initR.run
   }

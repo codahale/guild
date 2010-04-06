@@ -6,21 +6,21 @@ import org.jetlang.channels.{MemoryChannel, AsyncRequest, Request, MemoryRequest
 import java.util.concurrent.TimeUnit
 import concurrent.forkjoin.{TransferQueue, LinkedTransferQueue}
 
-trait ActorFactory[T <: ActorBehavior] {
+trait ActorFactory[M,R,T <: ActorBehavior[M,R]] {
   def createActor() : T
 }
 
 /**
  * Implements a pool of actors which all consume from a single message channel.
  */
-class ActorPool[T <: ActorBehavior](factory : ActorFactory[T]) extends Sendable with Callable {
+class ActorPool[M,R, T <: ActorBehavior[M,R]](factory : ActorFactory[M,R,T]) extends Sendable[M] with Callable[M,R] {
   /**
    * Override this method to use a different scheduler.
    */
   protected def scheduler = Scheduler.Default
-  protected val asyncQueue = new LinkedTransferQueue[Any]
+  protected val asyncQueue = new LinkedTransferQueue[Message[M]]
   
-  protected var actors = Seq[(Fiber, ActorBehavior)]()
+  protected var actors = Seq[(Fiber, ActorBehavior[M,R])]()
   
   /**
    * Creates and start i actors.
@@ -37,15 +37,15 @@ class ActorPool[T <: ActorBehavior](factory : ActorFactory[T]) extends Sendable 
   }
   
   def stop() {
-    actors.foreach({ (fiber : Fiber, actor : ActorBehavior) => fiber.dispose }.tupled)
+    actors.foreach({ (fiber : Fiber, actor : ActorBehavior[M,R]) => fiber.dispose }.tupled)
   }
   
-  def send(msg : Any) {
+  def send(msg : M) {
     asyncQueue.put(AsyncMessage(msg))
   }
   
-  def call(msg : Any) : Any = {
-    val returnQueue = new LinkedTransferQueue[Any]
+  def call(msg : M) : R = {
+    val returnQueue = new LinkedTransferQueue[R]
     asyncQueue.put(CallMessage(msg, returnQueue))    
     returnQueue.poll(Long.MaxValue, TimeUnit.DAYS)
   }
