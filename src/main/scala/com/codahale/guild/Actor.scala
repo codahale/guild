@@ -5,44 +5,36 @@ import org.jetlang.channels.{AsyncRequest, Request, MemoryRequestChannel}
 import java.util.concurrent.TimeUnit
 import concurrent.forkjoin.{TransferQueue, LinkedTransferQueue}
 
-/**
- * A callback wrapper which sends a message to an actor and relays its reply
- * to the scheduler.
- */
-private case class RequestCallback(actor: Actor) extends Callback[Request[Any, Any]] {
-  def onMessage(message: Request[Any, Any]) {
-    message.reply(actor.onMessage(message.getRequest))
-  }
+
+trait Callable[-M, +R] {
+  def call(msg : M) : R
+}
+
+trait Sendable[-M] {
+  def send(msg : M)
 }
 
 /**
- * A callback wrapper which relays the reply to the receiver.
+ * This is dogshit, but I'd rather not break the interface for fucking everyone.
  */
-private case class ReplyCallback(queue: TransferQueue[Any]) extends Callback[Any] {
-  def onMessage(reply: Any) {
-    queue.put(reply)
-  }
-}
-
-private case class ActorInit(actor : Actor) extends Runnable {
-  def run() {
-    actor.onStart
-  }
-}
-
-/**
- * A callback wrapper which sends a message to an actor.
- */
-private case class ActorExecution(actor: Actor, msg: Any) extends Runnable {
-  def run() {
-    actor.onMessage(msg)
+trait ActorBehavior[-M, +R] {
+  /**
+   * An abstract method which is called when the actor receives a message.
+   */
+  def onMessage(message: M): R
+  
+  /**
+   * An abstract method which is called when the actor first starts up
+   */
+  def onStart() {
+    
   }
 }
 
 /**
  * An actor class which receives messages in order and safely.
  */
-abstract class Actor {
+abstract class Actor[M,R] extends ActorBehavior[M,R] with Callable[M, R] with Sendable[M] {
   /**
    * Override this method to use a different scheduler.
    */
@@ -61,41 +53,37 @@ abstract class Actor {
    * Stops the actor. Actors which have been stopped cannot be restarted.
    */
   def stop() = fiber.dispose()
-
-  /**
-   * An abstract method which is called when the actor receives a message.
-   */
-  def onMessage(message: Any): Any
   
   /**
    * An overridable method which is called when the actor first starts up.
    */
-  def onStart {
+  override def onStart {
     
   }
 
   /**
    * Asynchronously sends a message to the actor.
    */
-  def send(msg: Any) {
+  def send(msg: M) {
     fiber.execute(ActorExecution(this, msg))
   }
 
   /**
    * Synchronously sends a message to the actor and returns the response.
    */
-  def call(msg: Any): Any = {
-    val queue = new LinkedTransferQueue[Any]
+  def call(msg: M): R = {
+    val queue = new LinkedTransferQueue[R]
 
     val fiber = scheduler.createFiber()
     fiber.start()
 
-    val channel = new MemoryRequestChannel[Any, Any]
+    val channel = new MemoryRequestChannel[M, R]
     channel.subscribe(fiber, RequestCallback(this))
-    AsyncRequest.withOneReply(fiber, channel, msg, ReplyCallback(queue))
+    val disposable = AsyncRequest.withOneReply(fiber, channel, msg, ReplyCallback(queue))
 
     val value = queue.poll(Long.MaxValue, TimeUnit.DAYS)
     fiber.dispose()
+    disposable.dispose()
     return value
   }
 }
