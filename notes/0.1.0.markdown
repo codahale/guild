@@ -1,0 +1,7 @@
+Initial release!
+
+* Fast actors!
+* Pooled actors!
+* Asynchronous message-passing!
+* Synchronous message-passing!
+
