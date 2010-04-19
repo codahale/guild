@@ -38,5 +38,5 @@ class Guild(info: sbt.ProjectInfo) extends sbt.DefaultProject(info) with postero
    * Test Dependencies
    */
   val scalaTest = "org.scalatest" % "scalatest" % "1.0.1-for-scala-2.8.0.Beta1-with-test-interfaces-0.3-SNAPSHOT" % "test" withSources()
-  val mockito = "org.mockito" % "mockito-core" % "1.8.0" % "test"//
+  val mockito = "org.mockito" % "mockito-all" % "1.8.4" % "test" withSources()
 }
