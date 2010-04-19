@@ -1,9 +1,8 @@
 package com.codahale.guild
 
-import org.jetlang.core.Callback
-import org.jetlang.channels.{AsyncRequest, Request, MemoryRequestChannel}
+import org.jetlang.channels.{AsyncRequest, MemoryRequestChannel}
 import java.util.concurrent.TimeUnit
-import concurrent.forkjoin.{TransferQueue, LinkedTransferQueue}
+import concurrent.forkjoin.{LinkedTransferQueue}
 
 
 trait Callable[-M, +R] {

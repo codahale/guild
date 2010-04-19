@@ -1,11 +1,9 @@
 package com.codahale.guild
 
 import org.jetlang.core.Callback
-import org.jetlang.channels.{AsyncRequest, Request, MemoryRequestChannel}
+import org.jetlang.channels.Request
 import java.util.concurrent.TimeUnit
-import concurrent.forkjoin.{TransferQueue, LinkedTransferQueue}
-import scala.reflect.Manifest
-
+import concurrent.forkjoin.TransferQueue
 /**
  * A callback wrapper which sends a message to an actor and relays its reply
  * to the scheduler.

@@ -1,10 +1,8 @@
 package com.codahale.guild
 
 import org.jetlang.fibers.Fiber
-import org.jetlang.core.Callback
-import org.jetlang.channels.{MemoryChannel, AsyncRequest, Request, MemoryRequestChannel}
 import java.util.concurrent.TimeUnit
-import concurrent.forkjoin.{TransferQueue, LinkedTransferQueue}
+import concurrent.forkjoin.{LinkedTransferQueue}
 
 trait ActorFactory[M,R,T <: ActorBehavior[M,R]] {
   def createActor() : T
