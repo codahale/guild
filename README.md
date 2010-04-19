@@ -26,7 +26,7 @@ How To Use
     
     import com.codahale.guild.Actor
     
-    class MyActor extends Actor {
+    class MyActor extends Actor[Any, Any] {
       def onMessage(msg: Any) = {
         msg match {
           case i: Int => i + i
@@ -55,6 +55,26 @@ How To Use
 (No, there isn't a `!` method or a `!?` method or a `\m/` method. If you feel
 that they add clarity to your code, feel free to add them to a trait and extend
 your actor classes with them.)
+
+**For your Asynchronous Message-Passing Merit Badge**, check out actor pools,
+which dispatch messages to a pool of actor workers:
+    
+    import com.codahale.guild.{Actor, ActorFactory, ActorPool}
+    
+    class StringCounter extends Actor[String, Int] {
+      def onMessage(s: String) = s.length
+    }
+    
+    class StringCounterFactory extends ActorFactory[String, Int, MyActor] {
+      def createActor() = new StringCounter
+    }
+    
+    val factory = new StringCounterFactory
+    val counterPool = new ActorPool(factory)
+    
+    pool.start(4) // start up 4 instances of StringCounter
+    pool.call("yesssss")
+    pool.stop()
 
 
 License
