@@ -65,7 +65,7 @@ which dispatch messages to a pool of actor workers:
       def onMessage(s: String) = s.length
     }
     
-    class StringCounterFactory extends ActorFactory[String, Int, MyActor] {
+    class StringCounterFactory extends ActorFactory[String, Int, StringCounter] {
       def createActor() = new StringCounter
     }
     
