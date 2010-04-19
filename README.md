@@ -18,7 +18,7 @@ How To Use
 **First**, specify Metrics as a dependency:
 
     val codaRepo = "Coda Hale's Repository" at "http://repo.codahale.com/"
-    val guild = "com.codahale" % "guild_2.8.0.Beta1" % "1.0" withSources()
+    val guild = "com.codahale" % "guild_2.8.0.Beta1" % "0.1.0" withSources()
 
 (Or whatever gets Ivy or Maven to work for you.)
 
