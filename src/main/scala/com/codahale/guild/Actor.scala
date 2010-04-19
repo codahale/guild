@@ -4,26 +4,37 @@ import org.jetlang.channels.{AsyncRequest, MemoryRequestChannel}
 import java.util.concurrent.TimeUnit
 import concurrent.forkjoin.{LinkedTransferQueue}
 
-
+/**
+ * An interface for objects capable of synchronous message-passing.
+ */
 trait Callable[-M, +R] {
+  /**
+   * Sends a message to the actor and waits for the result.
+   */
   def call(msg : M) : R
 }
 
+/**
+ * An interface for objects capable of asynchronous message-passing.
+ */
 trait Sendable[-M] {
+  /**
+   * Sends a message to the actor.
+   */
   def send(msg : M)
 }
 
 /**
- * This is dogshit, but I'd rather not break the interface for fucking everyone.
+ * An abstract actor base class.
  */
-trait ActorBehavior[-M, +R] {
+abstract class AbstractActor[-M, +R] {
   /**
    * An abstract method which is called when the actor receives a message.
    */
   def onMessage(message: M): R
   
   /**
-   * An abstract method which is called when the actor first starts up
+   * An overridable method which is called when the actor first starts up.
    */
   def onStart() {
     
@@ -33,7 +44,7 @@ trait ActorBehavior[-M, +R] {
 /**
  * An actor class which receives messages in order and safely.
  */
-abstract class Actor[M,R] extends ActorBehavior[M,R] with Callable[M, R] with Sendable[M] {
+abstract class Actor[M,R] extends AbstractActor[M,R] with Callable[M, R] with Sendable[M] {
   /**
    * Override this method to use a different scheduler.
    */
@@ -52,13 +63,6 @@ abstract class Actor[M,R] extends ActorBehavior[M,R] with Callable[M, R] with Se
    * Stops the actor. Actors which have been stopped cannot be restarted.
    */
   def stop() = fiber.dispose()
-  
-  /**
-   * An overridable method which is called when the actor first starts up.
-   */
-  override def onStart {
-    
-  }
 
   /**
    * Asynchronously sends a message to the actor.

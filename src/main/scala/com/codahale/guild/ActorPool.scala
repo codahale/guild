@@ -4,21 +4,21 @@ import org.jetlang.fibers.Fiber
 import java.util.concurrent.TimeUnit
 import concurrent.forkjoin.{LinkedTransferQueue}
 
-trait ActorFactory[M,R,T <: ActorBehavior[M,R]] {
+trait ActorFactory[M,R,T <: AbstractActor[M,R]] {
   def createActor() : T
 }
 
 /**
  * Implements a pool of actors which all consume from a single message channel.
  */
-class ActorPool[M,R, T <: ActorBehavior[M,R]](factory : ActorFactory[M,R,T]) extends Sendable[M] with Callable[M,R] {
+class ActorPool[M,R, T <: AbstractActor[M,R]](factory : ActorFactory[M,R,T]) extends Sendable[M] with Callable[M,R] {
   /**
    * Override this method to use a different scheduler.
    */
   protected def scheduler = Scheduler.Default
   protected val asyncQueue = new LinkedTransferQueue[Message[M]]
   
-  protected var actors = Seq[(Fiber, ActorBehavior[M,R])]()
+  protected var actors = Seq[(Fiber, AbstractActor[M,R])]()
   
   /**
    * Creates and start i actors.
@@ -35,7 +35,7 @@ class ActorPool[M,R, T <: ActorBehavior[M,R]](factory : ActorFactory[M,R,T]) ext
   }
   
   def stop() {
-    actors.foreach({ (fiber : Fiber, actor : ActorBehavior[M,R]) => fiber.dispose }.tupled)
+    actors.foreach({ (fiber : Fiber, actor : AbstractActor[M,R]) => fiber.dispose }.tupled)
   }
   
   def send(msg : M) {

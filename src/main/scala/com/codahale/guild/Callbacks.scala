@@ -4,11 +4,12 @@ import org.jetlang.core.Callback
 import org.jetlang.channels.Request
 import java.util.concurrent.TimeUnit
 import concurrent.forkjoin.TransferQueue
+
 /**
  * A callback wrapper which sends a message to an actor and relays its reply
  * to the scheduler.
  */
-private case class RequestCallback[M, R](actor: ActorBehavior[M,R]) extends Callback[Request[M,R]] {
+private case class RequestCallback[M, R](actor: AbstractActor[M,R]) extends Callback[Request[M,R]] {
   def onMessage(message: Request[M,R]) {
     message.reply(actor.onMessage(message.getRequest))
   }
@@ -23,13 +24,13 @@ private case class ReplyCallback[R](queue: TransferQueue[R]) extends Callback[R]
   }
 }
 
-private case class ActorInit(actor : ActorBehavior[_,_]) extends Runnable {
+private case class ActorInit(actor : AbstractActor[_,_]) extends Runnable {
   def run() {
     actor.onStart
   }
 }
 
-private case class PollQueue[M,R](actor : ActorBehavior[M,R], queue : TransferQueue[Message[M]]) extends Runnable {
+private case class PollQueue[M,R](actor : AbstractActor[M,R], queue : TransferQueue[Message[M]]) extends Runnable {
   def run() {
     try {
       queue.poll(Long.MaxValue, TimeUnit.DAYS) match {
@@ -57,7 +58,7 @@ private case class PollQueue[M,R](actor : ActorBehavior[M,R], queue : TransferQu
   }
 }
 
-private case class AsyncCallback[M,R](actor : ActorBehavior[M,R]) extends Callback[M] {
+private case class AsyncCallback[M,R](actor : AbstractActor[M,R]) extends Callback[M] {
   def onMessage(msg : M) {
     actor.onMessage(msg)
   }
@@ -66,7 +67,7 @@ private case class AsyncCallback[M,R](actor : ActorBehavior[M,R]) extends Callba
 /**
  * A callback wrapper which sends a message to an actor.
  */
-private case class ActorExecution[M,R](actor: ActorBehavior[M,R], msg: M) extends Runnable {
+private case class ActorExecution[M,R](actor: AbstractActor[M,R], msg: M) extends Runnable {
   def run() {
     actor.onMessage(msg)
   }
