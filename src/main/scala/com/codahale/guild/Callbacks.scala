@@ -36,8 +36,12 @@ private case class PollQueue[M,R](actor : AbstractActor[M,R], queue : TransferQu
       queue.poll(Long.MaxValue, TimeUnit.DAYS) match {
         //not sure that this would ever happen but OK
         case ErrorMessage(ex) => throw ex
-        case m : AsyncMessage[_] => dispatchAsync(m.asInstanceOf[AsyncMessage[M]])
-        case m : CallMessage[_,_] => dispatch(m.asInstanceOf[CallMessage[M,R]])
+        case m : AsyncMessage[_] => 
+          dispatchAsync(m.asInstanceOf[AsyncMessage[M]])
+          run
+        case m : CallMessage[_,_] => 
+          dispatch(m.asInstanceOf[CallMessage[M,R]])
+          run
       }
     } catch {
       case e : InterruptedException => run

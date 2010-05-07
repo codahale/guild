@@ -4,7 +4,7 @@ import org.scalatest._
 import org.scalatest.matchers.MustMatchers
 import org.scalatest.mock.MockitoSugar
 import com.codahale.guild._
-import org.mockito.Mockito.verify
+import org.mockito.Mockito._
 
 class TestActorFactory extends ActorFactory[Any, Any, TestActor] with MockitoSugar {
   var mockOnMessages = List[Runnable]()
@@ -53,6 +53,19 @@ class ActorPoolSpec extends Spec
     
     it ("should throw exceptions") {
       evaluating { pool.call('ex) } must produce [Exception]
+    }
+    
+    it ("should not exhaust the pool") {
+      pool.send('run)
+      pool.send('run)
+      pool.send('run)
+      pool.send('run)
+      pool.send('run)
+      pool.send('run)
+      
+      Thread.sleep(100)
+      factory.mockOnInits.foreach {m => verify(m).run() }
+      factory.mockOnMessages.foreach {m => verify(m, times(2)).run() }
     }
   }
 }
