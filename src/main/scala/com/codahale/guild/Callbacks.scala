@@ -4,6 +4,7 @@ import org.jetlang.core.Callback
 import org.jetlang.channels.Request
 import java.util.concurrent.TimeUnit
 import concurrent.forkjoin.TransferQueue
+import scala.annotation.tailrec
 
 /**
  * A callback wrapper which sends a message to an actor and relays its reply
@@ -32,19 +33,19 @@ private case class ActorInit(actor : AbstractActor[_,_]) extends Runnable {
 
 private case class PollQueue[M,R](actor : AbstractActor[M,R], queue : TransferQueue[Message[M]]) extends Runnable {
   def run() {
-    try {
-      queue.poll(Long.MaxValue, TimeUnit.DAYS) match {
-        //not sure that this would ever happen but OK
-        case ErrorMessage(ex) => throw ex
-        case m : AsyncMessage[_] => 
-          dispatchAsync(m.asInstanceOf[AsyncMessage[M]])
-          run
-        case m : CallMessage[_,_] => 
-          dispatch(m.asInstanceOf[CallMessage[M,R]])
-          run
+    while (true) {
+      try {
+        queue.poll(Long.MaxValue, TimeUnit.DAYS) match {
+          //not sure that this would ever happen but OK
+          case ErrorMessage(ex) => throw ex
+          case m : AsyncMessage[_] => 
+            dispatchAsync(m.asInstanceOf[AsyncMessage[M]])
+          case m : CallMessage[_,_] => 
+            dispatch(m.asInstanceOf[CallMessage[M,R]])
+        }
+      } catch {
+        case e : InterruptedException => 'ok
       }
-    } catch {
-      case e : InterruptedException => run
     }
   }
   
